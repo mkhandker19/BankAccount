@@ -1,12 +1,18 @@
+import java.math.*;
+
 public class BankAccount {
     private int accountNumber;
-    private double balance;
+    private BigDecimal balance;
     private String firstName;
     private String lastName;
 
-    public BankAccount(int accountNumber, double balance, String firstName, String lastName) {
+    public BankAccount(int accountNumber, BigDecimal balance, String firstName, String lastName) {
         this.accountNumber = accountNumber;
-        this.balance = balance;
+        if (balance == null || balance.compareTo(BigDecimal.ZERO) < 0) {
+            this.balance = BigDecimal.ZERO;
+        } else {
+            this.balance = balance;
+        }
         this.firstName = firstName;
         this.lastName = lastName;
     }
@@ -15,7 +21,7 @@ public class BankAccount {
         return accountNumber;
     }
 
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 
@@ -27,22 +33,28 @@ public class BankAccount {
         return lastName;
     }
 
-    public void deposit(double amount) {
-        if  (amount > 0) {
-            balance += amount;
+    public boolean deposit(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
         }
+        balance = balance.add(amount);
+        return true;
     }
 
-    public boolean withdraw(double amount) {
-        if  (amount > 0 && balance >= amount) {
-            balance -= amount;
-            return true;
+    public boolean withdraw(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
         }
-        return false;
+        if (balance.compareTo(amount) < 0) {
+            return false;
+        }
+        balance = balance.subtract(amount);
+        return true;
     }
 
     @Override
     public String toString() {
-        return accountNumber + "," + firstName + "," + lastName + "," + String.format("%.2f", balance);
+        BigDecimal scaled = balance.setScale(2, RoundingMode.HALF_UP);
+        return accountNumber + "," + firstName + "," + lastName + "," + scaled.toPlainString();
     }
 }

@@ -1,6 +1,7 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.math.*;
 
 public class Main {
 
@@ -9,7 +10,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         ArrayList<BankAccount> accounts = new ArrayList<>();
         int nextAccountNumber = 1;
-        int choice;
+        int choice = -1;
 
         do {
             System.out.println("\n1. Deposit money");
@@ -19,20 +20,45 @@ public class Main {
             System.out.println("0. Quit");
             System.out.print("Your choice: ");
 
+            if (!scanner.hasNextInt()) {
+                System.out.println("Invalid. Please enter a number.");
+                scanner.next();
+                continue;
+            }
             choice = scanner.nextInt();
 
             switch (choice) {
 
                 case 1:
                     System.out.print("Enter account number: ");
+
+                    if (!scanner.hasNextInt()) {
+                        System.out.println("Invalid account number.");
+                        scanner.next();
+                        break;
+                    }
+
                     int depAccNum = scanner.nextInt();
                     BankAccount depAccount = findAccount(accounts, depAccNum);
 
                     if (depAccount != null) {
+
                         System.out.print("Enter deposit amount: ");
-                        double amount = scanner.nextDouble();
-                        depAccount.deposit(amount);
-                        System.out.println("New balance: $" + depAccount.getBalance());
+
+                        if (!scanner.hasNextBigDecimal()) {
+                            System.out.println("Invalid amount.");
+                            scanner.next();
+                            break;
+                        }
+
+                        BigDecimal amount = scanner.nextBigDecimal();
+
+                        if (depAccount.deposit(amount)) {
+                            System.out.println("New balance: $" + depAccount.getBalance());
+                        } else {
+                            System.out.println("Deposit must be greater than 0.");
+                        }
+
                     } else {
                         System.out.println("Account not found.");
                     }
@@ -40,17 +66,34 @@ public class Main {
 
                 case 2:
                     System.out.print("Enter account number: ");
+
+                    if (!scanner.hasNextInt()) {
+                        System.out.println("Invalid account number.");
+                        scanner.next();
+                        break;
+                    }
+
                     int withAccNum = scanner.nextInt();
                     BankAccount withAccount = findAccount(accounts, withAccNum);
 
                     if (withAccount != null) {
+
                         System.out.print("Enter withdrawal amount: ");
-                        double amount = scanner.nextDouble();
+
+                        if (!scanner.hasNextBigDecimal()) {
+                            System.out.println("Invalid amount.");
+                            scanner.next();
+                            break;
+                        }
+
+                        BigDecimal amount = scanner.nextBigDecimal();
+
                         if (withAccount.withdraw(amount)) {
                             System.out.println("New balance: $" + withAccount.getBalance());
                         } else {
                             System.out.println("Insufficient funds or invalid amount.");
                         }
+
                     } else {
                         System.out.println("Account not found.");
                     }
@@ -58,6 +101,13 @@ public class Main {
 
                 case 3:
                     System.out.print("Enter account number: ");
+
+                    if (!scanner.hasNextInt()) {
+                        System.out.println("Invalid account number.");
+                        scanner.next();
+                        break;
+                    }
+
                     int balAccNum = scanner.nextInt();
                     BankAccount balAccount = findAccount(accounts, balAccNum);
 
@@ -78,23 +128,38 @@ public class Main {
                     System.out.print("Enter last name: ");
                     String lastName = scanner.nextLine();
 
-                    System.out.print("Enter initial balance: ");
-                    double initialBalance = scanner.nextDouble();
-
-                    if (firstName.length() >= 3 && lastName.length() >= 3) {
-                        BankAccount newAccount = new BankAccount(
-                                nextAccountNumber++,
-                                initialBalance,
-                                firstName,
-                                lastName);
-
-                        accounts.add(newAccount);
-                        System.out.println("Account created successfully!");
-                    } else {
+                    if (firstName.length() < 3 || lastName.length() < 3) {
                         System.out.println("First and last name must be at least 3 characters.");
+                        break;
                     }
-                    break;
 
+                    System.out.print("Enter initial balance: ");
+
+                    if (!scanner.hasNextBigDecimal()) {
+                        System.out.println("Invalid balance.");
+                        scanner.next();
+                        break;
+                    }
+
+                    BigDecimal initialBalance = scanner.nextBigDecimal();
+
+                    if (initialBalance.compareTo(BigDecimal.ZERO) < 0) {
+                        System.out.println("Balance cannot be negative.");
+                        break;
+                    }
+
+                    BankAccount newAccount = new BankAccount(
+                            nextAccountNumber++,
+                            initialBalance,
+                            firstName,
+                            lastName);
+
+                    accounts.add(newAccount);
+
+                    System.out.println("Account created successfully!");
+                    System.out.println("Your account number is: " + newAccount.getAccountNumber());
+
+                    break;
                 case 0:
                     System.out.println("Exiting program...");
                     break;
@@ -110,10 +175,10 @@ public class Main {
             BankAccount lowest = accounts.get(0);
 
             for (BankAccount acc : accounts) {
-                if (acc.getBalance() > highest.getBalance()) {
+                if (acc.getBalance().compareTo(highest.getBalance()) > 0) {
                     highest = acc;
                 }
-                if (acc.getBalance() < lowest.getBalance()) {
+                if (acc.getBalance().compareTo(lowest.getBalance()) < 0) {
                     lowest = acc;
                 }
             }
